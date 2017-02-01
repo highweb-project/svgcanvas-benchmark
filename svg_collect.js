@@ -8,8 +8,8 @@ window.setDevToolsCallback(function(resultJSON) {
         }, 100);
     } else {
         setTimeout(function() {
-            window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+            window.executeJavaScriptInDevTools("Timeline.TimelineUIUtils.callResultCallback();");
         }, 500);
     }
 });
-window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+window.executeJavaScriptInDevTools("Timeline.TimelineUIUtils.callResultCallback();");

@@ -84,7 +84,9 @@ if ($mode == 'initOrigin' || $mode == 'initHighweb') {
 <script>
 function ready() {
 <?php
+$showTimeline = 'window.executeJavaScriptInDevTools("UI.inspectorView.showPanel(\"timeline\");");';
 if (!empty($url)) {
+    echo $showTimeline;
     $script = 'setTimeout(function() { location.replace("'.$url.'"); }, 1000);';
     echo $script;
 }
@@ -92,7 +94,7 @@ if (!empty($url)) {
 }
 
 <?php
-$toggleCMD = 'window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");';
+$toggleCMD = 'window.executeJavaScriptInDevTools("UI.panels.timeline._toggleRecording();");';
 
 if ($mode == 'start') {
     echo $toggleCMD;
