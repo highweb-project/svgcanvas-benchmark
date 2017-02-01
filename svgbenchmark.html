@@ -1,0 +1,154 @@
+<html>
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta charset="UTF-8">
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>
+</title>
+</head>
+<body>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <div id="chart_div"></div>
+  <p />
+  <div id="desc">SVG/Canvas 벤치마크 테스트 입니다.</div>
+  <p />
+  <div id="result"></div>
+  <p />
+  <iframe id="svg" width="100%" height="100%"></iframe>
+  <script>
+    var message = document.getElementById('desc');
+    var result = document.getElementById('result');
+    var iframe = document.getElementById('svg');
+
+    var loading = 0;
+    var scripting = 0;
+    var rendering = 0;
+    var painting = 0;
+    var other = 0;
+    var idle = 0;
+
+    function drawMaterial() {
+      var data = google.visualization.arrayToDataTable([
+        ['Category', 'Default', 'Highweb SVG/Canvas Convert'],
+        ['Loading', loading, loading],
+        ['Scripting', scripting, scripting],
+        ['Rendering', rendering, rendering],
+        ['Painting', painting, painting],
+        ['Other', other, other]
+      ]);
+
+      var options = {
+        chart: {
+          title: 'Highweb SVG/Canvas Converting Benchmark Result'
+        },
+        hAxis: {
+          title: 'Time (ms)',
+          minValue: 0,
+        },
+        vAxis: {
+          title: 'Category'
+        },
+        bars: 'horizontal'
+      };
+      var material = new google.charts.Bar(document.getElementById('chart_div'));
+      material.draw(data, options);
+    }
+
+    setTimeout(function() {
+      message.innerHTML += " #0 레코딩 시작";
+      window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+    }, 5000); // +5
+
+    setTimeout(function() {
+      message.innerHTML += " #1 (1000)";
+      console.log("#1 Loading...");
+      iframe.src = "http://180.66.229.97/pjs/svg_canvas/svgelement_1000.html";
+    }, 8000); // +3
+
+    setTimeout(function() {
+      message.innerHTML += " #2 (2500)";
+      console.log("#2 Loading...");
+      iframe.src = "http://180.66.229.97/pjs/svg_canvas/svgelement_2500.html";
+    }, 12000); // +4
+
+    setTimeout(function() {
+      message.innerHTML += " #3 (5000)";
+      console.log("#3 Loading...");
+      iframe.src = "http://180.66.229.97/pjs/svg_canvas/svgelement_5000.html";
+    }, 17000); // +5
+
+    setTimeout(function() {
+      message.innerHTML += " #4 (10000)";
+      console.log("#4 Loading...");
+      iframe.src = "http://180.66.229.97/pjs/svg_canvas/svgelement_10000.html";
+    }, 23000); // +6
+
+    setTimeout(function() {
+      message.innerHTML += " #5 레코딩 종료";
+      window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+    }, 30000); // +7
+
+    setTimeout(function() {
+      var retryCount = 0;
+      message.innerHTML += " #6 데이터 요청중";
+      window.setDevToolsCallback(function(resultJSON) {
+        var jsonObj = JSON.parse(resultJSON);
+        var paramsObj = JSON.parse(jsonObj.params);
+
+        if(paramsObj.idle) {
+            message.innerHTML += " #7 데이터 수신완료";
+
+            loading = paramsObj.loading;
+            scripting = paramsObj.scripting;
+            rendering = paramsObj.rendering;
+            painting = paramsObj.painting;
+            other = paramsObj.other;
+            idle = paramsObj.idle;
+
+            console.log("loading : " + loading);
+            console.log("scripting : " + scripting);
+            console.log("rendering : " + rendering);
+            console.log("painting : " + painting);
+            console.log("other : " + other);
+            console.log("idle : " + idle);
+
+            google.charts.load('current', {packages: ['corechart', 'bar']});
+            google.charts.setOnLoadCallback(drawMaterial);
+        } else {
+          retryCount++;
+          // message.innerHTML += " #7 데이터 재요청 (" + retryCount + ")";
+          message.innerHTML += ".";
+
+          setTimeout(function() {
+            window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+          }, 1000);
+        }
+      });
+      window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+    }, 33000); // +3
+  </script>
+  <!-- <script>
+  console.log("devtools.html - start");
+  window.executeJavaScriptInDevTools("console.log(\"devtools.html, from js to devtools_window\");");
+
+  console.log("devtools.html - set callback");
+  window.setDevToolsCallback(function(result) {
+    console.log("devtools.html, DevToolsCallback, result : " + result);
+  });
+
+  setTimeout(function() {
+    console.log("devtools.html - CALL _toggleRecording (recording start)");
+    window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+  }, 3000);
+  setTimeout(function() {
+    console.log("devtools.html - CALL _toggleRecording (recording end)");
+    window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+  }, 6000);
+  setTimeout(function() {
+    console.log("devtools.html - CALL TimelineUIUtils.callResultCallback()");
+    window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+  }, 10000);
+  </script> -->
+</body>
+</html>

@@ -1,0 +1,163 @@
+<html>
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta charset="UTF-8">
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>
+</title>
+</head>
+<body>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<div id="chart_div"></div><p />
+<div id="desc">SVG/Canvas 벤치마크 테스트 입니다.</div><p />
+<div id="result"></div><p />
+<script>
+  var message = document.getElementById('desc');
+  var result = document.getElementById('result');
+  var originList = [];
+  var highwebList = [];
+  var iframe;
+  var isOrigin = true;
+
+  var tick = 2000;
+
+  function InspectResult() {
+    var loading = 0;
+    var scripting = 0;
+    var rendering = 0;
+    var painting = 0;
+    var other = 0;
+    var idle = 0;
+  }
+
+  var originResult = new InspectResult();
+  var highwebResult = new InspectResult();
+
+  function drawMaterial() {
+    var data = google.visualization.arrayToDataTable([
+      ['Category', 'Default', 'Highweb SVG/Canvas Convert'],
+      ['Loading', originResult.loading, highwebResult.loading],
+      ['Scripting', originResult.scripting, highwebResult.scripting],
+      ['Rendering', originResult.rendering, highwebResult.rendering],
+      ['Painting', originResult.painting, highwebResult.painting],
+      ['Other', originResult.other, highwebResult.other]
+    ]);
+
+    var options = {
+      chart: {
+        title: 'Highweb SVG/Canvas Converting Benchmark Result'
+      },
+      hAxis: {
+        title: 'Time (ms)',
+        minValue: 0,
+      },
+      vAxis: {
+        title: 'Category'
+      },
+      bars: 'horizontal'
+    };
+    var material = new google.charts.Bar(document.getElementById('chart_div'));
+    material.draw(data, options);
+
+    if(isOrigin) {
+      isOrigin = false;
+      setTimeout(runBenchmark, 8000);
+
+      setTimeout(function() {
+        message.innerHTML += " [#] 레코딩 시작";
+        window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+      }, tick);
+    }
+  }
+
+  originList.push("http://180.66.229.97/rand/svgblank.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500.html");
+  originList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000.html");
+  highwebList.push("http://180.66.229.97/rand/svgblank.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_5000_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_2500_canvas.html");
+  highwebList.push("http://180.66.229.97/pjs/svg_canvas/svgelement_1000_canvas.html");
+
+  function runBenchmark() {
+    var targetList = originList;
+    var targetResult = originResult;
+
+    if(isOrigin == false) {
+      targetList = highwebList;
+      targetResult = highwebResult;
+    }
+
+    var url = targetList.pop();
+
+    if(url) {
+      message.innerHTML += " [#] Testing...";
+      iframe.src = url;
+    } else {
+      message.innerHTML += " [#] 레코딩 종료";
+      window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+
+      setTimeout(function() {
+        message.innerHTML += " [#] 데이터 요청중";
+        window.setDevToolsCallback(function(resultJSON) {
+          var jsonObj = JSON.parse(resultJSON);
+          var paramsObj = JSON.parse(jsonObj.params);
+
+          if(paramsObj.idle) {
+            message.innerHTML += " [#] 데이터 수신완료";
+
+            targetResult.loading = paramsObj.loading;
+            targetResult.scripting = paramsObj.scripting;
+            targetResult.rendering = paramsObj.rendering;
+            targetResult.painting = paramsObj.painting;
+            targetResult.other = paramsObj.other;
+            targetResult.idle = paramsObj.idle;
+
+            google.charts.load('current', {packages: ['corechart', 'bar']});
+            google.charts.setOnLoadCallback(drawMaterial);
+          } else {
+            message.innerHTML += ".";
+
+            setTimeout(function() {
+              window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+            }, tick);
+          }
+        });
+        window.executeJavaScriptInDevTools("WebInspector.TimelineUIUtils.callResultCallback();");
+      }, tick);
+    }
+  };
+
+  window.onload = function() {
+    iframe = document.createElement('iframe');
+    var loadedCallback = function() {
+      setTimeout(runBenchmark, tick);
+    };
+
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.addEventListener('load', loadedCallback, false);
+
+    setTimeout(function() {
+      document.body.appendChild(iframe);
+
+      message.innerHTML += " [#] 레코딩 시작";
+      window.executeJavaScriptInDevTools("WebInspector.context.flavor(WebInspector.TimelinePanel)._toggleRecording();");
+    }, tick * 3);
+  }
+</script>
+</body>
+</html>
